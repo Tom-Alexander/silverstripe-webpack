@@ -4,9 +4,10 @@ namespace Webpack;
 
 use \Config;
 use \Director;
+use \ArrayList;
 use \ViewableData;
 
-class Asset extends ViewableData
+class Asset extends \ViewableData
 {
 
     public $Path;
@@ -50,6 +51,14 @@ class Asset extends ViewableData
             );
         }
 
+    }
+
+    public function Tag()
+    {
+        return $this->customise(array(
+            'Assets' => ArrayList::create(array($this)),
+            'Name' => 'Asset'
+        ))->renderWith('WebpackAssets');
     }
 
     /**

@@ -5,7 +5,7 @@ namespace Webpack;
 use \ArrayList;
 use \ViewableData;
 
-class Chunk extends ViewableData
+class Chunk extends \ViewableData
 {
     private $assets;
     public $Name;
@@ -34,7 +34,7 @@ class Chunk extends ViewableData
 
     public function forTemplate()
     {
-        return $this->customise(array('Assets' => $this->assets))
+        return $this->customise(array('Assets' => $this->assets, 'Name' => $this->Name))
             ->renderWith('WebpackAssets');
     }
 }
