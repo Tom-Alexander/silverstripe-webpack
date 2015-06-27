@@ -2,7 +2,11 @@
 
 namespace Webpack;
 
-class Resource extends \ViewableData
+use \Config;
+use \Director;
+use \ViewableData;
+
+class Asset extends ViewableData
 {
 
     public $Path;
@@ -20,19 +24,18 @@ class Resource extends \ViewableData
      */
     public function Content()
     {
-        if(\Director::isDev() && $server = \Config::inst()->get('Webpack', 'developmentServer')) {
+        if(Director::isDev() && $server = Config::inst()->get('Webpack', 'developmentServer')) {
             return file_get_contents($this->Link());
         }
         return file_get_contents(BASE_PATH . $this->Link());
     }
-
 
     /**
      * @return string
      */
     public function Link()
     {
-        if(\Director::isDev() && $server = \Config::inst()->get('Webpack', 'developmentServer')) {
+        if(Director::isDev() && $server = Config::inst()->get('Webpack', 'developmentServer')) {
             return sprintf(
                 "%s/%s",
                 $server,
@@ -42,7 +45,7 @@ class Resource extends \ViewableData
             return sprintf(
                 "/%s/%s/%s",
                 $this->ThemeDir(),
-                \Config::inst()->get('Webpack', 'build'),
+                Config::inst()->get('Webpack', 'build'),
                 $this->Path
             );
         }

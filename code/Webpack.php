@@ -2,14 +2,18 @@
 
 namespace Webpack;
 
-class Webpack extends \ViewableData implements \Flushable
+use \Config;
+use \Flushable;
+use \ViewableData;
+
+class Webpack extends ViewableData implements Flushable
 {
 
-    protected $bundle;
+    protected $chunks;
 
     public function __construct()
     {
-        $this->bundle = $this->bundleManifest($this->getManifestPath());
+        $this->chunks = $this->getChunksFromManifest($this->getManifestPath());
     }
 
     /**
@@ -22,9 +26,9 @@ class Webpack extends \ViewableData implements \Flushable
         return sprintf(
             "%s/themes/%s/%s/%s",
             BASE_PATH,
-            \Config::inst()->get('SSViewer', 'theme'),
-            \Config::inst()->get('Webpack', 'source'),
-            \Config::inst()->get('Webpack', 'injectedName')
+            Config::inst()->get('SSViewer', 'theme'),
+            Config::inst()->get('Webpack', 'source'),
+            Config::inst()->get('Webpack', 'injectedName')
         );
     }
 
@@ -38,9 +42,9 @@ class Webpack extends \ViewableData implements \Flushable
         return sprintf(
             "%s/themes/%s/%s/%s",
             BASE_PATH,
-            \Config::inst()->get('SSViewer', 'theme'),
-            \Config::inst()->get('Webpack', 'build'),
-            \Config::inst()->get('Webpack', 'manifestName')
+            Config::inst()->get('SSViewer', 'theme'),
+            Config::inst()->get('Webpack', 'build'),
+            Config::inst()->get('Webpack', 'manifestName')
         );
     }
 
@@ -67,9 +71,8 @@ class Webpack extends \ViewableData implements \Flushable
      */
     public function StyleSheet()
     {
-        return $this->customise(array(
-                'Chunks' => $this->bundle->filter('Extension', 'css')
-            ))->renderWith('WebpackStyleSheetBundle');
+        return $this->customise(array('Assets' => $this->Assets('css')))
+            ->renderWith('WebpackAssets');
     }
 
 
@@ -80,17 +83,36 @@ class Webpack extends \ViewableData implements \Flushable
      */
     public function Javascript()
     {
-        return $this->customise(array(
-                'Chunks' => $this->bundle->filter('Extension', 'js')
-            ))->renderWith('WebpackJavascriptBundle');
+        return $this->customise(array('Assets' => $this->Assets('js')))
+            ->renderWith('WebpackAssets');
     }
 
     /**
+     * Returns an ArrayList of chunks from your webpack
+     * manifest filtered by name
+     * @param null $name
      * @return \ArrayList
      */
-    public function Bundle()
+    public function Chunks($name = null)
     {
-        return $this->bundle;
+        if($name == null) return $this->chunks;
+        return $this->chunks->filter(array('Name' => $name));
+    }
+
+    /**
+     * Returns an ArrayList of Assets that exist in any chunk,
+     * filtered by file extension
+     * @param null $extension
+     * @return \ArrayList
+     */
+    public function Assets($extension = null)
+    {
+        $assets = new \ArrayList();
+        foreach($this->chunks as $chunk) {
+            $assets->merge($chunk->Assets($extension));
+        }
+
+        return $assets;
     }
 
     /**
@@ -104,7 +126,7 @@ class Webpack extends \ViewableData implements \Flushable
         $modulePath = sprintf("%s/%s/%s", BASE_PATH, $this->ThemeDir(), $request);
         file_put_contents(self::getInjectionPath(), "require(\"$modulePath\"); \n", FILE_APPEND);
         $asset = $this->getAssetFromUserRequest(self::getManifestPath(), $modulePath);
-        return new Resource($asset);
+        return new Asset($asset);
     }
 
     /**
@@ -113,24 +135,28 @@ class Webpack extends \ViewableData implements \Flushable
      * @param $path
      * @return \ArrayList
      */
-    protected function bundleManifest($path)
+    protected function getChunksFromManifest($path)
     {
         $source = file_get_contents($path);
         $manifest = json_decode($source, true);
-        $assets = $manifest['assetsByChunkName'];
-        $bundle = new \ArrayList();
+        $rawChunks = $manifest['assetsByChunkName'];
+        $chunks = new \ArrayList();
 
-        foreach ($assets as $name => $asset) {
-            if (is_array($asset)) {
-                foreach ($asset as $file) {
-                    $bundle->add(new Resource($file));
+        foreach ($rawChunks as $name => $rawChunk) {
+            $chunk = new Chunk($name);
+
+            if (is_array($rawChunk)) {
+                foreach ($rawChunk as $asset) {
+                    $chunk->addAsset(new Asset($asset));
                 }
             } else {
-                $bundle->add(new Resource($asset));
+                $chunk->addAsset(new Asset($rawChunk));
             }
+
+            $chunks->add($chunk);
         }
 
-        return $bundle;
+        return $chunks;
 
     }
 
