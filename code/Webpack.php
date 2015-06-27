@@ -30,7 +30,7 @@ class Webpack extends \ViewableData implements \Flushable
             BASE_PATH,
             Config::inst()->get('SSViewer', 'theme'),
             Config::inst()->get('Webpack', 'source'),
-            Config::inst()->get('Webpack', 'injectedName')
+            Config::inst()->get('Webpack', 'entry')
         );
     }
 
@@ -46,7 +46,7 @@ class Webpack extends \ViewableData implements \Flushable
             BASE_PATH,
             Config::inst()->get('SSViewer', 'theme'),
             Config::inst()->get('Webpack', 'build'),
-            Config::inst()->get('Webpack', 'manifestName')
+            Config::inst()->get('Webpack', 'manifest')
         );
     }
 

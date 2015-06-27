@@ -64,9 +64,9 @@ require('./silverstripe_template_require.js');
 
 ```
 Webpack:
-  build: 'assets'
+  build:  'assets'
   source: 'source'
-  manifestName: 'manifest.json'
-  injectedName: 'silverstripe_template_require.js'
-  developmentServer: false
+  manifest: 'manifest.json'
+  development_server: false
+  entry: 'silverstripe_template_require.js'
 ```

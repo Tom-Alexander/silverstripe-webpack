@@ -2,6 +2,6 @@
 Webpack:
   build:  'assets'
   source: 'source'
-  manifestName: 'manifest.json'
-  injectedName: 'silverstripe_template_require.js'
-  developmentServer: false
+  manifest: 'manifest.json'
+  entry: 'silverstripe_template_require.js'
+  development_server: false
